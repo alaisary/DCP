@@ -1,4 +1,71 @@
+=====================================
+# DeviceCodePhishing Documentation
+
+## Changes Made to Original Code
+
+### 1. Reduced Logging Noise
+- Removed repetitive token checking messages
+- Added single initial polling message
+- Only shows important status updates and successful token captures
+```go
+slog.Info("Started polling for token: " + deviceAuth.UserCode)  // Single initial message
+```
+
+### 2. TLS Support
+- Added flexible TLS configuration
+- Can run in both HTTP and HTTPS modes
+- Supports custom certificate paths
+```bash
+# HTTP Mode
+./DeviceCodePhishing server -a 0.0.0.0:8080 -l login
+
+# HTTPS Mode
+./DeviceCodePhishing server -a 0.0.0.0:443 -l login --cert /path/to/cert.pem --key /path/to/key.pem
+```
+
+### 3. Token Logging
+- All captured tokens are automatically logged to `tokens.txt`
+- Includes timestamps and token types
+- Format: `time=<timestamp> level=INFO msg="<token_type> for <user_code>: <token>"`
+- Captures three token types:
+  - Access Token
+  - ID Token
+  - Refresh Token
+
+### 4. Command Line Arguments
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `-a, --address` | Server listening address | `0.0.0.0:443` |
+| `-l, --lure-path` | Path for the lure endpoint | `/lure` |
+| `--cert` | Path to TLS certificate file | `""` |
+| `--key` | Path to TLS private key file | `""` |
+| `-u, --user-agent` | User-Agent for HeadlessBrowser | Edge on Windows |
+| `-c, --client-id` | ClientId for requesting token | MS Auth Broker |
+| `-t, --tenant` | Tenant for requesting token | `common` |
+
+## Running the Server
+
+### Using Docker (Recommended)
+```bash
+# Build
+docker build -t device-code-phishing .
+
+# Run (HTTP)
+docker run -p 8080:8080 device-code-phishing server -a 0.0.0.0:8080 -l login
+
+# Run (HTTPS)
+docker run -p 443:443 \
+  -v /path/to/cert.pem:/app/cert.pem \
+  -v /path/to/key.pem:/app/key.pem \
+  device-code-phishing \
+  server -a 0.0.0.0:443 -l login \
+  --cert /app/cert.pem \
+  --key /app/key.pem
+```
+
+=====================================
 # DeviceCodePhishing
+
 
 ## TL;DR;
 This is a novel technique that leverages the well-known Device Code phishing approach. 
