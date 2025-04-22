@@ -7,9 +7,7 @@
 - Removed repetitive token checking messages
 - Added single initial polling message
 - Only shows important status updates and successful token captures
-```go
-slog.Info("Started polling for token: " + deviceAuth.UserCode)  // Single initial message
-```
+
 
 ### 2. TLS Support
 - Added flexible TLS configuration
