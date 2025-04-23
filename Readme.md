@@ -92,7 +92,7 @@ Import-Module AADInternals
 Get-AADIntUsers -AccessToken $access_token
 Get-AADIntUser -AccessToken $access_token -UserPrincipalName "admin@domain"
 $refresh_token = "1.ASYAFR..."
-RefreshTo-OutlookToken -domain mcbs.edu.om -RefreshToken $refresh_token
+RefreshTo-OutlookToken -domain domain.com -RefreshToken $refresh_token
 
 Import-Module .\GraphRunner-main\GraphRunner.ps1
 Invoke-RefreshGraphTokens -RefreshToken $refresh_token -tenantid domain.com //this will produce $tokens var
