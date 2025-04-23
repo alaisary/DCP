@@ -22,6 +22,10 @@ RUN apt-get update && apt install ca-certificates -y
 COPY --from=build /myapp /myapp
 
 WORKDIR /app
-EXPOSE 8080
+# Create tokens directory with proper permissions
+RUN mkdir -p /app/tokens && chmod 750 /app/tokens
+
+EXPOSE 443
+VOLUME ["/app/tokens"]
 ENTRYPOINT [ "/myapp"]
 CMD ["server"]
